@@ -86,15 +86,15 @@ void loop() {
     int sound = io.ReadSound();
 
     if (dht.temperature > settings.max_sound || dht.temperature < settings.min_temp) {
-        api.Post('/api/temperature' + SERIAL, { temperature: dht.temperature });
+        api.Post('/api/temperature' + SERIAL, "{\"temperature\":" + str(dht.temperature) + "}");
     }
 
     if (dht.humidity > settings.max_humidity || dht.humidity < settings.min_humidity) {
-        api.Post('/api/humidity' + SERIAL, { humidity: dht.temperature });
+        api.Post('/api/humidity' + SERIAL, "{\"humidity\":" + str(dht.humidity) + "}");
     }
 
     if (sound > settings.max_sound || sound < settings.max_sound) {
-        api.Post('/api/sound' + SERIAL, { sound: dht.temperature });
+        api.Post('/api/sound' + SERIAL, "{\"sound\":" + str(sound) + "}");
     }
 
     // Intergrate intervals here
