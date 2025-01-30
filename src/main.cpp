@@ -17,6 +17,7 @@ int port = 3000;
 
 ApiInterface api(ssid, pass, server, port, true);
 IOInterface io(2, DHT11, A3, 3, 4);
+ServerSettings settings;
 
 void makePostRequest() {
     Response response = api.Post("/api/temperature/123456789", "{\"temperature\":22}");
@@ -68,13 +69,33 @@ void setup() {
     if (!api.Initialize()) {
         while (true); // Don't continue if we can't connect to WiFi        
     }
-
-    makeGetRequest();
-    delay(5000);
-    makePostRequest();
+    Response response = api.Get('/api/settings/' + SERIAL);
+    settings = {
+        max_temp: response.payload['max_temp'],
+        min_temp: response.payload['min_temp'],
+        max_humidity: response.payload['max_humidity'],
+        min_humidity: response.payload['min_humidity'],
+        max_sound: response.payload['max_sound'],
+        temp_interval: response.payload['temp_interval'],
+        humidity_interval: response.payload['humidity_interval']
+    };
 }
 
 void loop() {
-    //api.Update();
-    //Serial.println(io.ReadSound());
+    DHTReading dht = io.ReadDHT();
+    int sound = io.ReadSound();
+
+    if (dht.temperature > settings.max_sound || dht.temperature < settings.min_temp) {
+        api.Post('/api/temperature' + SERIAL, { temperature: dht.temperature });
+    }
+
+    if (dht.humidity > settings.max_humidity || dht.humidity < settings.min_humidity) {
+        api.Post('/api/humidity' + SERIAL, { humidity: dht.temperature });
+    }
+
+    if (sound > settings.max_sound || sound < settings.max_sound) {
+        api.Post('/api/sound' + SERIAL, { sound: dht.temperature });
+    }
+
+    // Intergrate intervals here
 }
